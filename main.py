@@ -10,7 +10,7 @@ SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
 
 # IF RENDER FAILS TO READ THE ENVIRONMENT VARIABLES, PASTE YOUR ACTUAL KEYS INSIDE THE QUOTES BELOW AS A BACKUP:
 if not SUPABASE_URL:
-    SUPABASE_URL = "https://tnmocggzljtyohjbxssd.supabase.co/rest/v1/"
+    SUPABASE_URL = "https://tnmocggzljtyohjbxssd.supabase.co"
 if not SUPABASE_KEY:
     SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRubW9jZ2d6bGp0eW9oamJ4c3NkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3NjIwMjcsImV4cCI6MjA5OTMzODAyN30.NWiEiSzL_0uLxVzby9c9zZ6z_et2GzVDNIRpwAB_9gk"
 
