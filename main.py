@@ -1,27 +1,27 @@
 from flask import Flask, request, redirect, render_template_string
-from supabase import create_client
+import requests
 import os
 
 app = Flask(__name__)
 
-# Fetch environment variables from Render dashboard
-SUPABASE_URL = os.environ.get("https://tnmocggzljtyohjbxssd.supabase.co")
-SUPABASE_KEY = os.environ.get("sb_publishable_QZYaIay71I2VvNAEdx2z8Q_5JqoO-lC")
+# PASTE YOUR VERIFIED CREDENTIALS DIRECTLY INSIDE THE QUOTES BELOW:
+SUPABASE_URL = "https://tnmocggzljtyohjbxssd.supabase.co"
+SUPABASE_KEY = "sb_publishable_QZYaIay71I2VvNAEdx2z8Q_5JqoO-lC"
 
-# IF RENDER FAILS TO READ THE ENVIRONMENT VARIABLES, PASTE YOUR ACTUAL KEYS INSIDE THE QUOTES BELOW AS A BACKUP:
-if not SUPABASE_URL:
-    SUPABASE_URL = "https://tnmocggzljtyohjbxssd.supabase.co"
-if not SUPABASE_KEY:
-    SUPABASE_KEY = "sb_publishable_QZYaIay71I2VvNAEdx2z8Q_5JqoO-lC"
-
-supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+# Setup headers for direct API communication
+HEADERS = {
+    "apikey": SUPABASE_KEY,
+    "Authorization": f"Bearer {SUPABASE_KEY}",
+    "Content-Type": "application/json",
+    "Prefer": "return=representation"
+}
 
 HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html>
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Permanent Link Modifier</title>
+    <title>Link Modifier</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f4f4f9; text-align: center; display: flex; justify-content: center; align-items: center; height: 100vh; }
         .container { width: 100%; max-width: 400px; background: white; padding: 30px 20px; border-radius: 15px; box-shadow: 0 8px 16px rgba(0,0,0,0.1); box-sizing: border-box; }
@@ -70,25 +70,38 @@ def create():
     custom_name = request.form.get('custom_name').strip().lower().replace(" ", "-")
     
     try:
-        check = supabase.table("links").select("original_url").eq("custom_name", custom_name).execute()
-        if check.data:
+        # Check if custom name already exists
+        verify_url = f"{SUPABASE_URL}/rest/v1/links?custom_name=eq.{custom_name}"
+        response = requests.get(verify_url, headers=HEADERS)
+        
+        if response.status_code == 200 and len(response.json()) > 0:
             return render_template_string(HTML_TEMPLATE, error="That name is already taken!")
         
-        supabase.table("links").insert({"custom_name": custom_name, "original_url": long_url}).execute()
+        # Insert data directly via HTTP POST
+        insert_url = f"{SUPABASE_URL}/rest/v1/links"
+        payload = {"custom_name": custom_name, "original_url": long_url}
+        post_response = requests.post(insert_url, headers=HEADERS, json=payload)
         
-        domain = request.host_url.replace("http://", "https://")
-        result_link = f"{domain}{custom_name}"
-        return render_template_string(HTML_TEMPLATE, result_link=result_link)
-        
+        if post_response.status_code in [200, 201]:
+            domain = request.host_url.replace("http://", "https://")
+            result_link = f"{domain}{custom_name}"
+            return render_template_string(HTML_TEMPLATE, result_link=result_link)
+        else:
+            return render_template_string(HTML_TEMPLATE, error=f"Database rejected entry: {post_response.text}")
+            
     except Exception as e:
-        return render_template_string(HTML_TEMPLATE, error=f"Database error: {str(e)}")
+        return render_template_string(HTML_TEMPLATE, error=f"System error: {str(e)}")
 
 @app.route('/<custom_name>')
 def redirect_to_url(custom_name):
     try:
-        result = supabase.table("links").select("original_url").eq("custom_name", custom_name.lower()).execute()
-        if result.data:
-            return redirect(result.data[0]["original_url"])
+        # Lookup original link
+        search_url = f"{SUPABASE_URL}/rest/v1/links?custom_name=eq.{custom_name.lower()}"
+        response = requests.get(search_url, headers=HEADERS)
+        
+        if response.status_code == 200 and len(response.json()) > 0:
+            original_url = response.json()[0]["original_url"]
+            return redirect(original_url)
     except Exception:
         pass
     return "<h3>Link not found or broken!</h3>", 404
