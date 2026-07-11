@@ -5,14 +5,14 @@ import os
 app = Flask(__name__)
 
 # Fetch environment variables from Render dashboard
-SUPABASE_URL = os.environ.get("SUPABASE_URL")
-SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
+SUPABASE_URL = os.environ.get("https://tnmocggzljtyohjbxssd.supabase.co")
+SUPABASE_KEY = os.environ.get("sb_publishable_QZYaIay71I2VvNAEdx2z8Q_5JqoO-lC")
 
 # IF RENDER FAILS TO READ THE ENVIRONMENT VARIABLES, PASTE YOUR ACTUAL KEYS INSIDE THE QUOTES BELOW AS A BACKUP:
 if not SUPABASE_URL:
     SUPABASE_URL = "https://tnmocggzljtyohjbxssd.supabase.co"
 if not SUPABASE_KEY:
-    SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRubW9jZ2d6bGp0eW9oamJ4c3NkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3NjIwMjcsImV4cCI6MjA5OTMzODAyN30.NWiEiSzL_0uLxVzby9c9zZ6z_et2GzVDNIRpwAB_9gk"
+    SUPABASE_KEY = "sb_publishable_QZYaIay71I2VvNAEdx2z8Q_5JqoO-lC"
 
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
