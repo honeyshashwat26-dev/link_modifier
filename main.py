@@ -4,9 +4,16 @@ import os
 
 app = Flask(__name__)
 
-# Connect to your permanent Supabase database using Environment Variables
+# Fetch environment variables from Render dashboard
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
+
+# IF RENDER FAILS TO READ THE ENVIRONMENT VARIABLES, PASTE YOUR ACTUAL KEYS INSIDE THE QUOTES BELOW AS A BACKUP:
+if not SUPABASE_URL:
+    SUPABASE_URL = "https://tnmocggzljtyohjbxssd.supabase.co/rest/v1/"
+if not SUPABASE_KEY:
+    SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRubW9jZ2d6bGp0eW9oamJ4c3NkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3NjIwMjcsImV4cCI6MjA5OTMzODAyN30.NWiEiSzL_0uLxVzby9c9zZ6z_et2GzVDNIRpwAB_9gk"
+
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 HTML_TEMPLATE = """
@@ -63,21 +70,18 @@ def create():
     custom_name = request.form.get('custom_name').strip().lower().replace(" ", "-")
     
     try:
-        # Check if name exists
         check = supabase.table("links").select("original_url").eq("custom_name", custom_name).execute()
         if check.data:
             return render_template_string(HTML_TEMPLATE, error="That name is already taken!")
         
-        # Save to database
         supabase.table("links").insert({"custom_name": custom_name, "original_url": long_url}).execute()
         
-        # Build final link
         domain = request.host_url.replace("http://", "https://")
         result_link = f"{domain}{custom_name}"
         return render_template_string(HTML_TEMPLATE, result_link=result_link)
         
     except Exception as e:
-        return render_template_string(HTML_TEMPLATE, error="Database connection error.")
+        return render_template_string(HTML_TEMPLATE, error=f"Database error: {str(e)}")
 
 @app.route('/<custom_name>')
 def redirect_to_url(custom_name):
